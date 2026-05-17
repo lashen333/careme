@@ -3,11 +3,11 @@ import Link from 'next/link'
 import { db } from '@/db'
 import { caregiverProfiles } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Shield, Calendar, Award, Briefcase } from 'lucide-react'
+import { Shield, Calendar, Award, Briefcase, Star } from 'lucide-react'
 import { getSession } from '@/lib/auth'
 import { cookies } from 'next/headers'
 import { getDictionary } from '@/i18n'
@@ -31,6 +31,17 @@ async function getCaregiver(id: string) {
         orderBy: (experiences, { desc }) => [desc(experiences.startDate)],
       },
       certificates: true,
+      reviews: {
+        with: {
+          patientOwner: {
+            columns: {
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+        orderBy: (reviews, { desc }) => [desc(reviews.createdAt)],
+      },
     },
   })
 }
@@ -53,6 +64,10 @@ export default async function CaregiverProfilePage({
   if (!caregiver) notFound()
 
   const isPatientOwner = session?.user?.role === 'PATIENT_OWNER'
+
+  const avgRating = caregiver.reviews.length > 0
+    ? caregiver.reviews.reduce((acc, r) => acc + r.rating, 0) / caregiver.reviews.length
+    : 0
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -84,9 +99,18 @@ export default async function CaregiverProfilePage({
                       </Badge>
                     )}
                   </div>
-                  <p className="mt-1 text-slate-600">
-                    {caregiver.experienceYears} {tCaregivers.yearsExperience || 'years experience'}
-                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Star className={cn("h-4 w-4", avgRating > 0 ? "fill-amber-400 text-amber-400" : "text-slate-300")} />
+                      <span className="text-sm font-semibold text-slate-900">
+                        {avgRating > 0 ? avgRating.toFixed(1) : 'No reviews'}
+                      </span>
+                    </div>
+                    <span className="text-slate-400">·</span>
+                    <p className="text-sm text-slate-600">
+                      {caregiver.experienceYears} {tCaregivers.yearsExperience || 'years experience'}
+                    </p>
+                  </div>
                   {caregiver.specializations && (
                     <div className="mt-3 flex flex-wrap gap-1">
                       {caregiver.specializations.split(',').map((s) => (
@@ -97,7 +121,7 @@ export default async function CaregiverProfilePage({
                     </div>
                   )}
                   {caregiver.bio && (
-                    <p className="mt-4 text-slate-600">{caregiver.bio}</p>
+                    <p className="mt-4 text-slate-600 leading-relaxed">{caregiver.bio}</p>
                   )}
                 </div>
               </div>
@@ -125,7 +149,7 @@ export default async function CaregiverProfilePage({
                         {exp.current ? (tProfile.present || 'Present') : exp.endDate ? formatDate(exp.endDate) : (tProfile.na || 'N/A')}
                       </p>
                       {exp.description && (
-                        <p className="mt-1 text-sm text-slate-600">{exp.description}</p>
+                        <p className="mt-1 text-sm text-slate-600 leading-snug">{exp.description}</p>
                       )}
                     </li>
                   ))}
@@ -163,6 +187,48 @@ export default async function CaregiverProfilePage({
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5" />
+                Reviews ({caregiver.reviews.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {caregiver.reviews.length > 0 ? (
+                <ul className="divide-y divide-slate-100">
+                  {caregiver.reviews.map((rev) => (
+                    <li key={rev.id} className="py-6 first:pt-0 last:pb-0">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-semibold">
+                          {rev.patientOwner.avatar ? (
+                            <img src={rev.patientOwner.avatar} alt={rev.patientOwner.name} className="h-full w-full rounded-full object-cover" />
+                          ) : rev.patientOwner.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{rev.patientOwner.name}</p>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={cn("h-3 w-3", i < rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-200")} />
+                            ))}
+                            <span className="text-xs text-slate-400 ml-1">{formatDate(rev.createdAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {rev.comment && (
+                        <p className="text-sm text-slate-600 leading-relaxed italic">"{rev.comment}"</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-slate-500 italic">No reviews yet for this caregiver.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div>

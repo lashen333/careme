@@ -6,7 +6,8 @@
     "admin": "Admin",
     "signOut": "Sign out",
     "logIn": "Log in",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "publicProfile": "Public Profile"
   },
   "home": {
     "heroTitle1": "Find Trusted Caregivers",
@@ -53,6 +54,15 @@
     "toastInvalidCredentials": "Invalid email or password",
     "toastSignInSuccess": "Signed in successfully!",
     "toastRegisterSuccess": "Registration successful. Please log in.",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "sending": "Sending...",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordMismatch": "Passwords do not match",
+    "resetSuccess": "Password reset successful",
+    "checkEmail": "Check your email for a reset link",
     "toastError": "Something went wrong"
   },
   "dashboard": {
@@ -73,7 +83,9 @@
     "completeProfile": "Complete your profile",
     "findCaregivers": "Find Caregivers",
     "noBookingsPatient": "No bookings yet.",
-    "cancellation": "Cancellation"
+    "cancellation": "Cancellation",
+    "viewPublicProfile": "View Public Profile",
+    "rating": "Avg Rating"
   },
   "bookingActions": {
     "accepting": "Accepting...",
@@ -157,26 +169,37 @@
     "editCaregiverProfile": "Edit caregiver profile",
     "profileStatus": "Profile Status: {status}",
     "statusPending": "PENDING",
+    "statusReview": "UNDER REVIEW",
+    "statusRejected": "REJECTED",
+    "statusSuspended": "SUSPENDED",
     "statusLive": "LIVE",
-    "welcomePending": "Welcome to Careme! Complete your profile below and click \"Publish Profile\" to become visible to patients.",
+    "welcomePending": "Welcome to Careme! Complete your profile below and submit it for admin review.",
     "setupProfileTitle": "Set up your profile",
     "setupProfileDesc": "A complete profile helps you get booked faster. Add your basic details, experience, and certificates.",
-    "liveDesc": "Your profile is visible to patient owners. You can continue scanning for bookings!",
-    "hiddenDesc": "Your profile is hidden. You must add a bio and hourly rate, then click \"Publish Profile\" at the bottom to go live.",
+    "liveDesc": "Your profile is visible to patient owners. You can continue receiving bookings!",
+    "reviewDesc": "Your profile is currently being reviewed by our team. You will be notified once it is approved.",
+    "rejectedDesc": "Your profile review was not successful. Please see the reason below, update your profile, and resubmit.",
+    "suspendedDesc": "Your account has been suspended. Please contact support for more information.",
+    "hiddenDesc": "Your profile is hidden. You must add a bio and hourly rate, then submit for review to go live.",
     "editPublicTitle": "Edit caregiver profile",
-    "editPublicDesc": "Make updates to your public caregiver listing and adjust your hourly rate or specializations."
+    "editPublicDesc": "Make updates to your public caregiver listing and adjust your hourly rate or specializations.",
+    "patientProfileTitle": "Patient Profile",
+    "patientProfileDesc": "Update your personal care information. This helps caregivers understand your needs better."
   },
   "profileForm": {
+    "profilePicture": "Profile Picture",
+    "avatarHelpText": "Clear profile pictures help build trust with other users. Supports JPG, PNG, and WebP.",
     "bio": "Bio",
     "bioPlaceholder": "Tell patients about yourself and your caregiving approach...",
     "yearsOfExperience": "Years of experience",
     "hourlyRate": "Hourly rate (USD)",
     "specializations": "Specializations (comma-separated)",
     "specializationsPlaceholder": "e.g. elderly care, disability, post-surgery",
-    "saveDraft": "Save Draft",
+    "saveDraft": "Save Profile",
     "saving": "Saving...",
-    "publishProfile": "Publish Profile",
-    "alreadyPublished": "Already Published",
+    "publishProfile": "Submit for Review",
+    "underReview": "Under Review",
+    "alreadyPublished": "Published & Live",
     "addExperience": "Add experience",
     "title": "Title",
     "organization": "Organization",
@@ -188,8 +211,8 @@
     "documentUrl": "Document URL",
     "toastUpdateFailed": "Update failed",
     "toastSaved": "Profile saved successfully",
-    "toastPublishFailed": "Failed to publish profile",
-    "toastPublished": "Profile published! You are now live.",
+    "toastPublishFailed": "Failed to submit for review",
+    "toastPublished": "Profile submitted for review!",
     "toastError": "Something went wrong"
   },
   "error": {

@@ -4,11 +4,13 @@ import { bookings } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getSession } from '@/lib/auth'
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession()
   if (!session?.user || session.user.role !== 'CAREGIVER') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const { id } = await params
 
   try {
     const { status } = await req.json()
@@ -19,7 +21,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const booking = await db.query.bookings.findFirst({
-      where: eq(bookings.id, params.id),
+      where: eq(bookings.id, id),
       with: { caregiver: true }
     })
 
@@ -29,7 +31,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const [updated] = await db.update(bookings)
       .set({ status, updatedAt: new Date() })
-      .where(eq(bookings.id, params.id))
+      .where(eq(bookings.id, id))
       .returning()
 
     return NextResponse.json(updated)

@@ -24,6 +24,11 @@ export default async function ProfilePage() {
           <Link href="/profile/caregiver">{t.editCaregiverProfile || 'Edit caregiver profile'}</Link>
         </Button>
       )}
+      {session.user.role === 'PATIENT_OWNER' && (
+        <Button asChild className="mt-6">
+          <Link href="/profile/patient">{t.editPatientProfile || 'Edit patient profile'}</Link>
+        </Button>
+      )}
     </div>
   )
 }

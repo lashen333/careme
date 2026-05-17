@@ -82,6 +82,15 @@ export function Navbar({ dict, currentLocale = 'en' }: { dict?: any, currentLoca
                   {t.dashboard}
                 </Link>
               )}
+              {session.user.role === 'CAREGIVER' && session.user.caregiverProfileId && (
+                 <Link
+                   href={`/caregivers/${session.user.caregiverProfileId}`}
+                   className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                 >
+                   <User className="h-4 w-4" />
+                   {t.publicProfile || 'Public Profile'}
+                 </Link>
+              )}
               <Link
                 href="/profile"
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"

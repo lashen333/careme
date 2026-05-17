@@ -7,8 +7,9 @@ import { eq, desc } from 'drizzle-orm'
 import { formatDate } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, MapPin, Activity, Briefcase } from 'lucide-react'
+import { Calendar, MapPin, Activity, Briefcase, Star } from 'lucide-react'
 import { LiveTracker } from './live-tracker'
+import { ReviewForm } from '@/components/review-form'
 import { cookies } from 'next/headers'
 import { getDictionary } from '@/i18n'
 
@@ -21,7 +22,7 @@ export default async function PatientDashboardPage() {
   const fullDict = await getDictionary(locale)
   const t = fullDict.dashboard || {}
 
-  const bookings = await db.query.bookings.findMany({
+    const bookings = await db.query.bookings.findMany({
     where: eq(bookingsTable.patientOwnerId, session.user.id),
     with: {
       caregiver: {
@@ -33,6 +34,7 @@ export default async function PatientDashboardPage() {
           },
         },
       },
+      review: true,
     },
     orderBy: [desc(bookingsTable.createdAt)],
   })
@@ -99,7 +101,7 @@ export default async function PatientDashboardPage() {
 
         <div className="mt-6 space-y-4">
           {bookingsWithCost.map((b) => (
-            <Card key={b.id}>
+            <Card key={b.id} className={b.status === 'COMPLETED' && !b.review ? "border-primary-200 bg-primary-50/30" : ""}>
               <CardContent className="p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -129,6 +131,26 @@ export default async function PatientDashboardPage() {
                     )}
                   </div>
                 </div>
+
+                {b.status === 'COMPLETED' && !b.review && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-2">Leave a Review</h4>
+                    <ReviewForm bookingId={b.id} />
+                  </div>
+                )}
+
+                {b.review && (
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-1 mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 ${i < b.review.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                      ))}
+                    </div>
+                    {b.review.comment && (
+                      <p className="text-sm text-slate-600 italic">"{b.review.comment}"</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

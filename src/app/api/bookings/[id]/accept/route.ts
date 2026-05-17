@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
-import { caregiverProfiles, bookings } from '@/db/schema'
+import { caregiverProfiles, bookings, users } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getSession } from '@/lib/auth'
+import { sendBookingAcceptedToPatient } from '@/lib/email'
 
 export async function POST(
   req: Request,
@@ -28,6 +29,9 @@ export async function POST(
       eq(bookings.caregiverId, profile.id),
       eq(bookings.status, 'PENDING')
     ),
+    with: {
+      patientOwner: { columns: { name: true, email: true } },
+    },
   })
   if (!booking) {
     return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
@@ -36,6 +40,18 @@ export async function POST(
   await db.update(bookings)
     .set({ status: 'CONFIRMED', cancellationReason: null, updatedAt: new Date() })
     .where(eq(bookings.id, id))
+
+  // Send email notification to patient
+  try {
+    await sendBookingAcceptedToPatient({
+      patientEmail: booking.patientOwner.email,
+      patientName: booking.patientOwner.name,
+      caregiverName: session.user.name,
+      startDate: booking.startDate,
+    })
+  } catch (emailErr) {
+    console.error('Failed to send booking accepted email:', emailErr)
+  }
 
   return NextResponse.json({ success: true })
 }

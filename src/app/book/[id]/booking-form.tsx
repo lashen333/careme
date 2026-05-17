@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { useI18n } from '@/components/i18n-provider'
@@ -224,11 +225,11 @@ export function BookingForm({
 
           <div>
             <Label htmlFor="notes">{t.notes || 'Notes (optional)'}</Label>
-            <textarea
+            <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="flex min-h-[80px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="mt-1 min-h-[80px]"
               placeholder={t.notesPlaceholder || 'Special instructions, patient condition, etc.'}
             />
           </div>

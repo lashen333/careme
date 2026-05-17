@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/db'
 import { caregiverProfiles, bookings } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, or, lt, gt } from 'drizzle-orm'
 import { getSession } from '@/lib/auth'
 import Stripe from 'stripe'
 import { z } from 'zod'
@@ -58,9 +58,37 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Caregiver not found or not available' }, { status: 404 })
         }
 
-        // Calculate duration in hours
+        // ── Double-booking conflict check ────────────────────────────
         const start = new Date(data.startDate)
         const end = new Date(data.endDate)
+
+        if (start >= end) {
+            return NextResponse.json({ error: 'End date must be after start date.' }, { status: 400 })
+        }
+
+        const conflict = await db.query.bookings.findFirst({
+            where: and(
+                eq(bookings.caregiverId, data.caregiverId),
+                or(
+                    // existing booking starts within the new window
+                    and(gt(bookings.startDate, start), lt(bookings.startDate, end)),
+                    // existing booking ends within the new window
+                    and(gt(bookings.endDate, start), lt(bookings.endDate, end)),
+                    // existing booking completely wraps the new window
+                    and(lt(bookings.startDate, start), gt(bookings.endDate, end))
+                )
+            ),
+        })
+
+        if (conflict) {
+            return NextResponse.json(
+                { error: 'This caregiver is already booked for the selected time slot. Please choose a different time.' },
+                { status: 409 }
+            )
+        }
+        // ─────────────────────────────────────────────────────────────
+
+        // Calculate duration in hours
         const durationHours = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60)))
         const amountTotal = Math.round(durationHours * caregiver.hourlyRate * 100) // in cents
 
@@ -87,7 +115,7 @@ export async function POST(req: Request) {
         }).returning()
 
         // 2. Create Stripe Checkout Session
-        const host = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+        const host = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
         const stripeSession = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             mode: 'payment',

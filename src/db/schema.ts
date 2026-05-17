@@ -17,6 +17,8 @@ export const users = pgTable('users', {
   phone: text('phone'),
   avatar: text('avatar'),
   role: text('role').default('PATIENT_OWNER').notNull(),
+  passwordResetToken: text('password_reset_token'),
+  passwordResetExpires: timestamp('password_reset_expires'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -91,6 +93,16 @@ export const bookings = pgTable('bookings', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const reviews = pgTable('reviews', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  bookingId: text('booking_id').notNull().unique().references(() => bookings.id, { onDelete: 'cascade' }),
+  patientOwnerId: text('patient_owner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  caregiverId: text('caregiver_id').notNull().references(() => caregiverProfiles.id, { onDelete: 'cascade' }),
+  rating: integer('rating').notNull(),
+  comment: text('comment'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   caregiverProfile: one(caregiverProfiles, {
@@ -102,6 +114,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [patientProfiles.userId],
   }),
   bookingsAsOwner: many(bookings),
+  reviews: many(reviews),
 }));
 
 export const caregiverProfilesRelations = relations(caregiverProfiles, ({ one, many }) => ({
@@ -112,6 +125,7 @@ export const caregiverProfilesRelations = relations(caregiverProfiles, ({ one, m
   experiences: many(experiences),
   certificates: many(certificates),
   bookings: many(bookings),
+  reviews: many(reviews),
 }));
 
 export const experiencesRelations = relations(experiences, ({ one }) => ({
@@ -142,6 +156,25 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   }),
   caregiver: one(caregiverProfiles, {
     fields: [bookings.caregiverId],
+    references: [caregiverProfiles.id],
+  }),
+  review: one(reviews, {
+    fields: [bookings.id],
+    references: [reviews.bookingId],
+  }),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [reviews.bookingId],
+    references: [bookings.id],
+  }),
+  patientOwner: one(users, {
+    fields: [reviews.patientOwnerId],
+    references: [users.id],
+  }),
+  caregiver: one(caregiverProfiles, {
+    fields: [reviews.caregiverId],
     references: [caregiverProfiles.id],
   }),
 }));

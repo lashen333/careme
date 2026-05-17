@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import type { CaregiverProfile, Experience, Certificate } from '@/db/schema'
 import { useI18n } from '@/components/i18n-provider'
+import { Camera, Loader2, User as UserIcon } from 'lucide-react'
 
 type ProfileWithStatus = CaregiverProfile & { status: string }
 
@@ -16,13 +18,59 @@ export function CaregiverProfileForm({
   profile,
   experiences,
   certificates,
+  user,
 }: {
   profile: ProfileWithStatus
   experiences: Experience[]
   certificates: Certificate[]
+  user: { avatar: string | null; name: string }
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+
+  const [avatarUrl, setAvatarUrl] = useState(user.avatar)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (PNG, JPG, or WebP)')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB')
+      return
+    }
+
+    setUploadingAvatar(true)
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    try {
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to upload image')
+        return
+      }
+
+      setAvatarUrl(data.avatarUrl)
+      toast.success('Profile picture updated successfully')
+      router.refresh()
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to upload image')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
 
   const [bio, setBio] = useState(profile.bio || '')
   const [experienceYears, setExperienceYears] = useState(profile.experienceYears.toString())
@@ -146,20 +194,64 @@ export function CaregiverProfileForm({
   }
 
   const isApproved = profile.status === 'APPROVED'
+  const isPendingReview = profile.status === 'PENDING_REVIEW'
+  const isSuspended = profile.status === 'SUSPENDED'
 
   return (
     <div className="mt-8 space-y-8">
       <Card>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Premium Avatar Edit Section */}
+            <div className="flex flex-col items-center justify-center pb-6 border-b border-slate-100 sm:flex-row sm:justify-start sm:gap-6">
+              <div className="relative group">
+                <div className="h-24 w-24 overflow-hidden rounded-full ring-4 ring-primary-50/50 bg-slate-100 flex items-center justify-center text-slate-400">
+                  {uploadingAvatar ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                  ) : avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={user.name}
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <UserIcon className="h-10 w-10 text-slate-400" />
+                  )}
+                </div>
+                {!uploadingAvatar && (
+                  <label
+                    htmlFor="avatar-upload"
+                    className="absolute bottom-0 right-0 p-1.5 bg-primary-600 text-white rounded-full shadow-lg cursor-pointer hover:bg-primary-700 transition-transform duration-200 hover:scale-110 flex items-center justify-center border border-white"
+                  >
+                    <Camera className="h-3.5 w-3.5" />
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                      disabled={isSuspended || uploadingAvatar}
+                    />
+                  </label>
+                )}
+              </div>
+              <div className="text-center sm:text-left mt-3 sm:mt-0">
+                <h4 className="text-sm font-semibold text-slate-900">{t.profilePicture || 'Profile Picture'}</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                  {t.avatarHelpText || 'Clear profile pictures help build trust with patient owners. Supports JPG, PNG, and WebP.'}
+                </p>
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="bio">{t.bio || 'Bio'}</Label>
-              <textarea
+              <Textarea
                 id="bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="mt-1 flex min-h-[100px] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                className="mt-1 min-h-[100px]"
                 placeholder={t.bioPlaceholder || 'Tell patients about yourself and your caregiving approach...'}
+                disabled={isSuspended}
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -171,6 +263,7 @@ export function CaregiverProfileForm({
                   min={0}
                   value={experienceYears}
                   onChange={(e) => setExperienceYears(e.target.value)}
+                  disabled={isSuspended}
                 />
               </div>
               <div>
@@ -182,6 +275,7 @@ export function CaregiverProfileForm({
                   step="0.01"
                   value={hourlyRate}
                   onChange={(e) => setHourlyRate(e.target.value)}
+                  disabled={isSuspended}
                 />
               </div>
             </div>
@@ -192,19 +286,24 @@ export function CaregiverProfileForm({
                 value={specializations}
                 onChange={(e) => setSpecializations(e.target.value)}
                 placeholder={t.specializationsPlaceholder || 'e.g. elderly care, disability, post-surgery'}
+                disabled={isSuspended}
               />
             </div>
             <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-              <Button type="submit" variant="outline" disabled={loading}>
-                {loading ? (t.saving || 'Saving...') : (t.saveDraft || 'Save Draft')}
+              <Button type="submit" variant="outline" disabled={loading || isSuspended}>
+                {loading ? (t.saving || 'Saving...') : (t.saveDraft || 'Save Profile')}
               </Button>
               <Button
                 type="button"
                 onClick={handlePublish}
-                disabled={loading || isApproved}
-                variant={isApproved ? "secondary" : "default"}
+                disabled={loading || isApproved || isPendingReview || isSuspended}
+                variant={(isApproved || isPendingReview) ? "secondary" : "default"}
               >
-                {isApproved ? (t.alreadyPublished || 'Already Published') : (t.publishProfile || 'Publish Profile')}
+                {isApproved 
+                  ? (t.alreadyPublished || 'Published & Live') 
+                  : isPendingReview 
+                    ? (t.underReview || 'Under Review') 
+                    : (t.publishProfile || 'Submit for Review')}
               </Button>
             </div>
           </form>
@@ -226,11 +325,11 @@ export function CaregiverProfileForm({
               value={expOrg}
               onChange={(e) => setExpOrg(e.target.value)}
             />
-            <textarea
+            <Textarea
               placeholder={t.description || 'Description'}
               value={expDesc}
               onChange={(e) => setExpDesc(e.target.value)}
-              className="flex min-h-[60px] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="min-h-[60px]"
             />
             <div className="flex gap-2">
               <Input
