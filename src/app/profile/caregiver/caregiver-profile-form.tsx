@@ -331,27 +331,38 @@ export function CaregiverProfileForm({
               onChange={(e) => setExpDesc(e.target.value)}
               className="min-h-[60px]"
             />
-            <div className="flex gap-2">
-              <Input
-                type="date"
-                value={expStart}
-                onChange={(e) => setExpStart(e.target.value)}
-                required
-              />
-              <Input
-                type="date"
-                value={expEnd}
-                onChange={(e) => setExpEnd(e.target.value)}
-                disabled={expCurrent}
-              />
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={expCurrent}
-                  onChange={(e) => setExpCurrent(e.target.checked)}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <div className="space-y-1">
+                <Label htmlFor="expStart" className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Start Date</Label>
+                <Input
+                  id="expStart"
+                  type="date"
+                  value={expStart}
+                  onChange={(e) => setExpStart(e.target.value)}
+                  required
                 />
-                {t.current || 'Current'}
-              </label>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="expEnd" className="text-[10px] uppercase font-bold tracking-wider text-slate-400">End Date</Label>
+                <Input
+                  id="expEnd"
+                  type="date"
+                  value={expEnd}
+                  onChange={(e) => setExpEnd(e.target.value)}
+                  disabled={expCurrent}
+                />
+              </div>
+              <div className="flex items-center h-full sm:pt-5 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={expCurrent}
+                    onChange={(e) => setExpCurrent(e.target.checked)}
+                    className="rounded text-primary-600 focus:ring-primary-500 h-4 w-4"
+                  />
+                  {t.current || 'Current'}
+                </label>
+              </div>
             </div>
             <Button type="submit" size="sm" disabled={loading}>
               {t.addExperience || 'Add experience'}

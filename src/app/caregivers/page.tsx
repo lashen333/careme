@@ -129,7 +129,7 @@ export default async function CaregiversPage({
                 className="border-0 focus-visible:ring-0 px-0 h-auto text-base placeholder:text-slate-400"
               />
             </div>
-            <div className="flex items-center px-4 py-3 gap-4">
+            <div className="flex flex-wrap items-center px-4 py-3 gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-slate-500 whitespace-nowrap">Price:</span>
                 <Input 
@@ -148,16 +148,18 @@ export default async function CaregiversPage({
                   className="w-20 h-9 text-sm"
                 />
               </div>
-              <Button type="submit" size="sm" className="bg-primary-600 hover:bg-primary-700">
-                Apply
-              </Button>
-              {(q || min || max) && (
-                <Button asChild variant="ghost" size="sm" className="text-slate-500">
-                  <Link href="/caregivers">
-                    <X className="h-4 w-4 mr-1" /> Clear
-                  </Link>
+              <div className="flex items-center gap-2">
+                <Button type="submit" size="sm" className="bg-primary-600 hover:bg-primary-700">
+                  Apply
                 </Button>
-              )}
+                {(q || min || max) && (
+                  <Button asChild variant="ghost" size="sm" className="text-slate-500">
+                    <Link href="/caregivers">
+                      <X className="h-4 w-4 mr-1" /> Clear
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </form>
         </CardContent>
