@@ -246,9 +246,16 @@ export default async function CaregiverProfilePage({
                   </Link>
                 </Button>
               ) : (
-                <p className="mt-4 text-sm text-slate-500">
-                  {tProfile.logInToBook || 'Log in as a patient owner to book this caregiver.'}
-                </p>
+                <div className="mt-4 space-y-3">
+                  <p className="text-sm text-slate-500 text-center">
+                    {tProfile.logInToBook || 'Log in as a patient owner to book this caregiver.'}
+                  </p>
+                  <Button asChild className="w-full" variant="outline">
+                    <Link href={`/login?callbackUrl=/caregivers/${caregiver.id}`}>
+                      {fullDict.navbar?.logIn || 'Log in'}
+                    </Link>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>

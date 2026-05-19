@@ -13,6 +13,8 @@ import { ReviewForm } from '@/components/review-form'
 import { cookies } from 'next/headers'
 import { getDictionary } from '@/i18n'
 
+import { CancelBookingButton } from './cancel-booking-button'
+
 export default async function PatientDashboardPage() {
   const { authorized, session } = await requireAuth(['PATIENT_OWNER'])
   if (!authorized || !session?.user) redirect('/login')
@@ -130,6 +132,11 @@ export default async function PatientDashboardPage() {
                       </p>
                     )}
                   </div>
+                  {['PENDING', 'CONFIRMED'].includes(b.status) && (
+                    <div className="flex-shrink-0">
+                      <CancelBookingButton bookingId={b.id} />
+                    </div>
+                  )}
                 </div>
 
                 {b.status === 'COMPLETED' && !b.review && (

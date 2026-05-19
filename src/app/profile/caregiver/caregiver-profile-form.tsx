@@ -289,6 +289,16 @@ export function CaregiverProfileForm({
                 disabled={isSuspended}
               />
             </div>
+            <div>
+              <Label htmlFor="kycDocumentUrl">KYC Document Link (e.g. Google Drive/Dropbox link to ID or Certificates)</Label>
+              <Input
+                id="kycDocumentUrl"
+                value={kycDocumentUrl}
+                onChange={(e) => setKycDocumentUrl(e.target.value)}
+                placeholder="https://link-to-your-kyc-document.com"
+                disabled={isSuspended}
+              />
+            </div>
             <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
               <Button type="submit" variant="outline" disabled={loading || isSuspended}>
                 {loading ? (t.saving || 'Saving...') : (t.saveDraft || 'Save Profile')}

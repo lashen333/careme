@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +24,7 @@ export function BookingForm({
   const router = useRouter()
   const [locationType, setLocationType] = useState<LocationType>('HOME')
   const [loading, setLoading] = useState(false)
+  const [minDateTime, setMinDateTime] = useState('')
 
   const [address, setAddress] = useState('')
   const [hospitalName, setHospitalName] = useState('')
@@ -37,6 +38,13 @@ export function BookingForm({
 
   const { t: fullDict } = useI18n()
   const t = fullDict.bookingFlow || {}
+
+  useEffect(() => {
+    const localISO = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16)
+    setMinDateTime(localISO)
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -57,6 +65,11 @@ export function BookingForm({
     }
     if (!startDate || !endDate) {
       toast.error(t.toastDates || 'Please select start and end dates')
+      return
+    }
+
+    if (new Date(startDate) >= new Date(endDate)) {
+      toast.error('End date must be after start date')
       return
     }
 
@@ -208,6 +221,7 @@ export function BookingForm({
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                min={minDateTime}
                 required
               />
             </div>
@@ -218,6 +232,7 @@ export function BookingForm({
                 type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || minDateTime}
                 required
               />
             </div>

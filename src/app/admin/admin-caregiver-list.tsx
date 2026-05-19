@@ -12,6 +12,7 @@ type Caregiver = {
   id: string
   status: string
   kycVerified: boolean
+  kycDocumentUrl: string | null
   experienceYears: number
   hourlyRate: number
   specializations: string
@@ -26,8 +27,14 @@ export function AdminCaregiverList({ caregivers }: { caregivers: Caregiver[] }) 
   async function approve(id: string) {
     setLoading(id)
     try {
-      await fetch(`/api/admin/caregivers/${id}/approve`, { method: 'POST' })
+      const res = await fetch(`/api/admin/caregivers/${id}/approve`, { method: 'POST' })
+      if (!res.ok) {
+        const d = await res.json()
+        alert(d.error || 'Failed to approve caregiver')
+      }
       router.refresh()
+    } catch {
+      alert('Something went wrong')
     } finally {
       setLoading(null)
     }
@@ -36,12 +43,57 @@ export function AdminCaregiverList({ caregivers }: { caregivers: Caregiver[] }) 
   async function reject(id: string, reason?: string) {
     setLoading(id)
     try {
-      await fetch(`/api/admin/caregivers/${id}/reject`, {
+      const res = await fetch(`/api/admin/caregivers/${id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason }),
       })
+      if (!res.ok) {
+        const d = await res.json()
+        alert(d.error || 'Failed to reject caregiver')
+      }
       router.refresh()
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function suspend(id: string) {
+    setLoading(id)
+    try {
+      const res = await fetch(`/api/admin/caregivers/${id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: 'Suspended by admin',
+          suspend: true,
+        }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        alert(d.error || 'Failed to suspend caregiver')
+      }
+      router.refresh()
+    } catch {
+      alert('Something went wrong')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function verifyKyc(id: string) {
+    setLoading(id)
+    try {
+      const res = await fetch(`/api/admin/caregivers/${id}/verify-kyc`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        alert(d.error || 'Failed to verify KYC')
+      }
+      router.refresh()
+    } catch {
+      alert('Something went wrong')
     } finally {
       setLoading(null)
     }
@@ -51,7 +103,11 @@ export function AdminCaregiverList({ caregivers }: { caregivers: Caregiver[] }) 
     if (!confirm('Remove this caregiver? This cannot be undone.')) return
     setLoading(id)
     try {
-      await fetch(`/api/admin/caregivers/${id}/remove`, { method: 'POST' })
+      const res = await fetch(`/api/admin/caregivers/${id}/remove`, { method: 'POST' })
+      if (!res.ok) {
+        const d = await res.json()
+        alert(d.error || 'Failed to remove caregiver')
+      }
       router.refresh()
     } finally {
       setLoading(null)
@@ -83,7 +139,7 @@ export function AdminCaregiverList({ caregivers }: { caregivers: Caregiver[] }) 
                   {cg.kycVerified && (
                     <Badge variant="primary" className="gap-1">
                       <Shield className="h-3 w-3" />
-                      KYC
+                      KYC Verified
                     </Badge>
                   )}
                 </div>
@@ -95,8 +151,21 @@ export function AdminCaregiverList({ caregivers }: { caregivers: Caregiver[] }) 
                 {cg.specializations && (
                   <p className="mt-1 text-xs text-slate-500">{cg.specializations}</p>
                 )}
+                {cg.kycDocumentUrl && (
+                  <p className="mt-2 text-xs">
+                    <a
+                      href={cg.kycDocumentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:underline inline-flex items-center gap-1 font-medium"
+                    >
+                      <Shield className="h-3.5 w-3.5" />
+                      View KYC Document
+                    </a>
+                  </p>
+                )}
               </div>
-              <div className="flex flex-shrink-0 gap-2">
+              <div className="flex flex-shrink-0 gap-2 flex-wrap sm:flex-nowrap">
                 {cg.status === 'PENDING' && (
                   <>
                     <Button
@@ -124,20 +193,23 @@ export function AdminCaregiverList({ caregivers }: { caregivers: Caregiver[] }) 
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      fetch(`/api/admin/caregivers/${cg.id}/reject`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          reason: 'Suspended by admin',
-                          suspend: true,
-                        }),
-                      }).then(() => router.refresh())
-                    }
+                    onClick={() => suspend(cg.id)}
                     disabled={!!loading}
                     className="gap-1"
                   >
                     Suspend
+                  </Button>
+                )}
+                {!cg.kycVerified && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => verifyKyc(cg.id)}
+                    disabled={!!loading}
+                    className="gap-1 border-primary-600 text-primary-600 hover:bg-primary-50"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Verify KYC
                   </Button>
                 )}
                 <Button
