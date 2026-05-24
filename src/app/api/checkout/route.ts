@@ -128,10 +128,10 @@ export async function POST(req: Request) {
             line_items: [
                 {
                     price_data: {
-                        currency: 'usd',
+                        currency: 'lkr',
                         product_data: {
                             name: `Caregiving Service with ${caregiver.user.name}`,
-                            description: `${durationHours} hours of service at $${caregiver.hourlyRate}/hr`,
+                            description: `${durationHours} hours of service at LKR ${caregiver.hourlyRate}/hr`,
                         },
                         unit_amount: amountTotal,
                     },

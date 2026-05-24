@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth'
 import { db } from '@/db'
 import { bookings as bookingsTable } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatCurrency } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, MapPin, Activity, Briefcase, Star } from 'lucide-react'
@@ -124,7 +124,7 @@ export default async function PatientDashboardPage() {
                         : `${b.hospitalName} – Ward ${b.wardNumber}, Bed ${b.bedNumber}`}
                     </p>
                     <p className="mt-1 text-sm font-medium text-slate-900">
-                      {t.estimatedCost || 'Estimated Cost'}: ${b.estimatedCost.toFixed(2)}
+                      {t.estimatedCost || 'Estimated Cost'}: {formatCurrency(b.estimatedCost)}
                     </p>
                     {b.cancellationReason && (
                       <p className="mt-2 text-sm text-red-600">

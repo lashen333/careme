@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth'
 import { db } from '@/db'
 import { caregiverProfiles, bookings as bookingsTable } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -101,7 +101,7 @@ export default async function CaregiverDashboardPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-500">{t.totalEarnings || 'Total Earnings'}</p>
-                <p className="text-2xl font-bold text-slate-900">${totalEarnings.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalEarnings)}</p>
               </div>
             </div>
           </CardContent>
@@ -114,7 +114,7 @@ export default async function CaregiverDashboardPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-500">{t.pendingEarnings || 'Pending Earnings'}</p>
-                <p className="text-2xl font-bold text-slate-900">${pendingEarnings.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-slate-900">{formatCurrency(pendingEarnings)}</p>
               </div>
             </div>
           </CardContent>
@@ -183,7 +183,7 @@ export default async function CaregiverDashboardPage() {
                           : `${b.hospitalName} – Ward ${b.wardNumber}, Bed ${b.bedNumber}`}
                       </p>
                       <p className="mt-1 text-sm font-medium text-slate-900">
-                        {t.estimatedCost || 'Estimated Cost'}: ${b.estimatedCost.toFixed(2)}
+                        {t.estimatedCost || 'Estimated Cost'}: {formatCurrency(b.estimatedCost)}
                       </p>
                       {b.notes && (
                         <p className="mt-2 text-sm text-slate-500">{b.notes}</p>

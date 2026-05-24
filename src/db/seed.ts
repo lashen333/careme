@@ -52,7 +52,7 @@ async function seed() {
         userId: user.id,
         status: 'APPROVED',
         bio: 'Experienced caregiver ready to help.',
-        hourlyRate: 25,
+        hourlyRate: 1500,
         experienceYears: 5,
       });
       console.log(`Created caregiver profile for ${user.email}`);

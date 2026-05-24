@@ -267,7 +267,7 @@ export function CaregiverProfileForm({
                 />
               </div>
               <div>
-                <Label htmlFor="hourlyRate">{t.hourlyRate || 'Hourly rate (USD)'}</Label>
+                <Label htmlFor="hourlyRate">{t.hourlyRate || 'Hourly rate (LKR)'}</Label>
                 <Input
                   id="hourlyRate"
                   type="number"
